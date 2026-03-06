@@ -2,9 +2,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/fixed_expense.dart';
 import '../services/database_service.dart';
 import '../models/entry.dart';
+import 'entry_provider.dart';
 
 class FixedExpenseNotifier extends StateNotifier<List<FixedExpense>> {
-  FixedExpenseNotifier() : super([]) {
+  final Ref ref;
+  FixedExpenseNotifier(this.ref) : super([]) {
     loadFixedExpenses();
   }
 
@@ -15,7 +17,7 @@ class FixedExpenseNotifier extends StateNotifier<List<FixedExpense>> {
   }
 
   Future<void> addFixedExpense(FixedExpense fixedExpense) async {
-    // ローカルに即時追加（dayOfMonthが正しい内に保护）
+    // ローカルに即時追加（dayOfMonthが正しい内に保護）
     state = [...state, fixedExpense];
     await _dbService.insertFixedExpense(fixedExpense);
   }
@@ -40,9 +42,11 @@ class FixedExpenseNotifier extends StateNotifier<List<FixedExpense>> {
       );
       await _dbService.insertEntry(entry);
     }
+    // 履歴 Provider を更新して即時反映させる
+    await ref.read(entryProvider.notifier).loadEntries();
   }
 }
 
 final fixedExpenseProvider = StateNotifierProvider<FixedExpenseNotifier, List<FixedExpense>>((ref) {
-  return FixedExpenseNotifier();
+  return FixedExpenseNotifier(ref);
 });

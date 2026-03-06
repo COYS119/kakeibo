@@ -143,20 +143,93 @@ class _FixedExpenseScreenState extends ConsumerState<FixedExpenseScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          ref.read(fixedExpenseProvider.notifier).registerFixedExpensesForMonth(DateTime.now());
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('今月の固定費を家計簿に記録しました')));
-        },
-        label: const Text('一括登録'),
-        icon: const Icon(Icons.auto_awesome),
-        backgroundColor: theme.colorScheme.primary,
-        elevation: 4,
-      ),
-    );
-  }
+  floatingActionButton: FloatingActionButton.extended(
+    onPressed: () async {
+      final selectedMonth = await _showMonthPicker(context);
+      if (selectedMonth != null) {
+        ref.read(fixedExpenseProvider.notifier).registerFixedExpensesForMonth(selectedMonth);
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('${selectedMonth.year}年${selectedMonth.month}月の固定費を記録しました'))
+          );
+        }
+      }
+    },
+    label: const Text('一括登録'),
+    icon: const Icon(Icons.auto_awesome),
+    backgroundColor: theme.colorScheme.primary,
+    elevation: 4,
+  ),
+);
+}
 
-  void _showAddDialog(BuildContext context, List<Category> categories) {
+Future<DateTime?> _showMonthPicker(BuildContext context) async {
+  DateTime selectedDate = DateTime.now();
+  final theme = Theme.of(context);
+
+  return showDialog<DateTime>(
+    context: context,
+    builder: (context) => StatefulBuilder(
+      builder: (context, setDialogState) => AlertDialog(
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.chevron_left),
+              onPressed: () => setDialogState(() => selectedDate = DateTime(selectedDate.year - 1, selectedDate.month)),
+            ),
+            Text('${selectedDate.year}年', style: const TextStyle(fontWeight: FontWeight.bold)),
+            IconButton(
+              icon: const Icon(Icons.chevron_right),
+              onPressed: () => setDialogState(() => selectedDate = DateTime(selectedDate.year + 1, selectedDate.month)),
+            ),
+          ],
+        ),
+        content: SizedBox(
+          width: 300,
+          child: GridView.builder(
+            shrinkWrap: true,
+            itemCount: 12,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3,
+              childAspectRatio: 1.5,
+              mainAxisSpacing: 8,
+              crossAxisSpacing: 8,
+            ),
+            itemBuilder: (context, index) {
+              final month = index + 1;
+              final isSelected = selectedDate.month == month;
+              return InkWell(
+                onTap: () => Navigator.pop(context, DateTime(selectedDate.year, month)),
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: isSelected ? theme.colorScheme.primary : Colors.transparent,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: isSelected ? theme.colorScheme.primary : Colors.grey.withOpacity(0.3)),
+                  ),
+                  child: Text(
+                    '$month月',
+                    style: TextStyle(
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                      color: isSelected ? Colors.white : theme.textTheme.bodyLarge?.color,
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('キャンセル')),
+        ],
+      ),
+    ),
+  );
+}
+
+void _showAddDialog(BuildContext context, List<Category> categories) {
     final theme = Theme.of(context);
     showModalBottomSheet(
       context: context,

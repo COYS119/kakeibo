@@ -19,16 +19,23 @@ class MonthlySummary {
   });
 }
 
+final selectedDateProvider = StateProvider<DateTime>((ref) => DateTime.now());
+
 final summaryProvider = Provider((ref) {
   final entries = ref.watch(entryProvider);
   final categories = ref.watch(categoryProvider);
+  final selectedDate = ref.watch(selectedDateProvider);
 
   double totalIncome = 0.0;
   double totalExpense = 0.0;
   double fixedExpenseTotal = 0.0;
   double variableExpenseTotal = 0.0;
 
-  for (var entry in entries) {
+  final filteredEntries = entries.where((e) => 
+    e.date.year == selectedDate.year && e.date.month == selectedDate.month
+  );
+
+  for (var entry in filteredEntries) {
     final category = categories.firstWhere(
       (c) => c.id == entry.categoryId,
       orElse: () => Category(name: '', type: CategoryType.expense, iconCode: 0, colorValue: 0),

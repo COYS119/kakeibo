@@ -4,6 +4,7 @@ import 'package:fl_chart/fl_chart.dart';
 import '../providers/entry_provider.dart';
 import '../providers/category_provider.dart';
 import '../models/category.dart';
+import '../providers/summary_provider.dart';
 import '../theme/app_theme.dart';
 import 'package:intl/intl.dart';
 
@@ -14,9 +15,10 @@ class GraphScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final entries = ref.watch(entryProvider);
     final categories = ref.watch(categoryProvider);
+    final selectedDate = ref.watch(selectedDateProvider);
     final theme = Theme.of(context);
 
-    final now = DateTime.now();
+    final now = selectedDate;
 
     // 直近6ヶ月のデータを集計
     final monthlyData = <int, Map<String, double>>{};

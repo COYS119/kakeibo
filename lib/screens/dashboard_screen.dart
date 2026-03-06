@@ -10,6 +10,7 @@ class DashboardScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final summary = ref.watch(summaryProvider);
+    final selectedDate = ref.watch(selectedDateProvider);
     final currencyFormat = NumberFormat.currency(locale: 'ja_JP', symbol: '¥');
     final theme = Theme.of(context);
 
@@ -19,21 +20,40 @@ class DashboardScreen extends ConsumerWidget {
         padding: const EdgeInsets.all(24),
         child: Column(
           children: [
-            // Month Header
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.primary.withOpacity(0.05),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text(
-                DateFormat('yyyy年 MM月').format(DateTime.now()),
-                style: TextStyle(
-                  fontSize: 16, 
-                  fontWeight: FontWeight.bold,
-                  color: theme.colorScheme.primary,
+            // Month Header with Switcher
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.chevron_left),
+                  onPressed: () {
+                    ref.read(selectedDateProvider.notifier).state = 
+                        DateTime(selectedDate.year, selectedDate.month - 1);
+                  },
                 ),
-              ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primary.withOpacity(0.05),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    DateFormat('yyyy年 MM月').format(selectedDate),
+                    style: TextStyle(
+                      fontSize: 18, 
+                      fontWeight: FontWeight.bold,
+                      color: theme.colorScheme.primary,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.chevron_right),
+                  onPressed: () {
+                    ref.read(selectedDateProvider.notifier).state = 
+                        DateTime(selectedDate.year, selectedDate.month + 1);
+                  },
+                ),
+              ],
             ),
             const SizedBox(height: 24),
 
